@@ -6,8 +6,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # Load the datasets
-ipc_data = pd.read_csv("ipc_sections.csv")
-fir_data = pd.read_csv("FIR_DATASET.csv")
+ipc_data = pd.read_csv("data/ipc_sections.csv")
+fir_data = pd.read_csv("data/FIR_DATASET.csv")
 
 # Fill missing values with empty strings
 ipc_data.fillna('', inplace=True)

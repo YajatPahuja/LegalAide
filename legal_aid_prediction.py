@@ -3,7 +3,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
 
 # Load dataset
-df = pd.read_csv("legal_aid_dataset.csv")
+df = pd.read_csv("data/legal_aid_dataset.csv")
 
 # Identify categorical and numerical columns
 categorical_features = [
