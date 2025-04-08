@@ -3,6 +3,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
+import joblib
+
 
 df = pd.read_csv("data/synthetic_contracts.csv")
 
@@ -23,3 +25,7 @@ new_contract = pd.DataFrame([[20, 100, 1, 5]], columns=X.columns)
 
 prediction = rf_model.predict(new_contract)
 print("Prediction for new contract:", "Violation" if prediction[0] == 1 else "Compliant")
+
+# # Save the trained model
+# joblib.dump(rf_model, "rf_model.pkl")
+# print("Model saved successfully!")
