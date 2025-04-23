@@ -19,8 +19,8 @@ contract LegalContractRegistry {
     }
 
     function getContract(string memory _hash) public view returns (string memory, bool, string memory) {
-        require(bytes(contracts[_hash].contractHash).length != 0, "Not found");
-        ContractRecord memory contractRecord = contracts[_hash];
-        return (contractRecord.contractHash, contractRecord.isCompliant, contractRecord.ipfsLink);
-    }
+    require(bytes(contracts[_hash].contractHash).length != 0, "Not found");
+    ContractRecord memory contractRecord = contracts[_hash];
+    return (contractRecord.contractHash, contractRecord.isCompliant, contractRecord.ipfsLink);
+}
 }

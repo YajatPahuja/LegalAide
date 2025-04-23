@@ -3,6 +3,4 @@ data/
 *.csv
 *.pkl
 .env
-
-text_recog_train.py
-text_recog.py
+ganache_data/

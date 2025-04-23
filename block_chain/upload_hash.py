@@ -2,26 +2,53 @@ import json
 from web3 import Web3
 import os
 from dotenv import load_dotenv
+import requests
 
-# Load environment variables
 load_dotenv()
 
-# Connect to Ganache (update if using another provider)
 w3 = Web3(Web3.HTTPProvider(os.getenv('GANACHE_URL')))
 
-# Load contract ABI
 with open('contract/contract_abi.json', 'r') as f:
     contract_abi = json.load(f)
 
-# Get contract address from environment
 contract_address = os.getenv('CONTRACT_ADDRESS')
 
-# Load contract
+
 contract = w3.eth.contract(address=contract_address, abi=contract_abi)
 
-# Wallet details from environment
 private_key = os.getenv('PRIVATE_KEY')
 account = w3.eth.account.from_key(private_key)
+
+PINATA_URL = "https://api.pinata.cloud/pinning/pinFileToIPFS"
+PINATA_API_KEY = os.getenv('PINATA_API_KEY')
+PINATA_API_SECRET = os.getenv('PINATA_SECRET_API_KEY')
+
+print(f"API Key: {os.getenv('PINATA_API_KEY')}")
+print(f"API Secret: {os.getenv('PINATA_SECRET_API_KEY')}")
+
+
+headers = {
+    'pinata_api_key': PINATA_API_KEY,
+    'pinata_secret_api_key': PINATA_API_SECRET
+}
+
+def upload_file_to_ipfs(file_path):
+    """
+    Uploads a file to IPFS using Pinata.
+    Returns the IPFS URL for the uploaded file.
+    """
+    with open(file_path, 'rb') as file:
+        # Upload the file to IPFS
+        response = requests.post(PINATA_URL, headers=headers, files={'file': file})
+
+    if response.status_code == 200:
+        ipfs_hash = response.json()['IpfsHash']
+        ipfs_link = f"https://gateway.pinata.cloud/ipfs/{ipfs_hash}"
+        print(f"✅ File uploaded to IPFS. IPFS Link: {ipfs_link}")
+        return ipfs_link
+    else:
+        print(f"❌ Error uploading file to IPFS: {response.text}")
+        return None
 
 def store_contract_data(contract_hash, is_compliant, ipfs_link):
     """
@@ -45,8 +72,14 @@ def store_contract_data(contract_hash, is_compliant, ipfs_link):
     return tx_hash.hex()
 
 # Example usage
-contract_hash = "YajatPahuja"  # Replace with actual contract hash
+file_path = "data/mydocument.pdf"  # Replace with the path to your contract file
+contract_hash = "Yajat"  # Replace with actual contract hash
 is_compliant = True  # Compliance result from your ML model
-ipfs_link = "https://gateway.pinata.cloud/ipfs/QmSi7k2gb8eB25yLgUgDx1LfTFGYq7ZwsBrabjt1MHDhKf"  # Replace with actual IPFS link
 
-store_contract_data(contract_hash, is_compliant, ipfs_link)
+# Upload file to IPFS
+ipfs_link = upload_file_to_ipfs(file_path)
+
+if ipfs_link:
+    store_contract_data(contract_hash, is_compliant, ipfs_link)
+
+

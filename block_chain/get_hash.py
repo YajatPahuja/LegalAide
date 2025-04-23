@@ -34,4 +34,4 @@ def get_contract_data(contract_hash):
         return None
 
 # Example usage
-retrieved_data = get_contract_data("YajatPahuja")
+retrieved_data = get_contract_data("Yajat")
