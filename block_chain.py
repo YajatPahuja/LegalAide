@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 import os
 from dotenv import load_dotenv
+import json
 
 # Load environment variables
 load_dotenv()
@@ -54,6 +55,8 @@ def upload_to_pinata(file_path, api_key, api_secret):
     except Exception as e:
         print(f"⚠ Error: {e}")
         return None
+    
+
 
 
 
