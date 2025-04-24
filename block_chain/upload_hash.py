@@ -6,6 +6,8 @@ import requests
 
 load_dotenv()
 
+# print(os.getenv('CONTRACT_ADDRESS'))
+
 w3 = Web3(Web3.HTTPProvider(os.getenv('GANACHE_URL')))
 
 with open('contract/contract_abi.json', 'r') as f:

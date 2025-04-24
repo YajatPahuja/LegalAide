@@ -1,65 +1,50 @@
-import streamlit as st
-import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+from ipc_recommendation import IPCRecommender
+from compliancy_check import ContractViolationChecker
+from legal_aid_prediction import LegalAidModel
 
-st.title("LEGAL AID - IPC Section Recommender")
+# recommender = IPCRecommender()
+# recommender.load_model('models/ipc_model.joblib')
 
-# Load the datasets
-ipc_data = pd.read_csv("data/ipc_sections.csv")
-fir_data = pd.read_csv("data/FIR_DATASET.csv")
+# # Now use it directly
+# case_input = "The accused forcibly entered a house and committed theft at night."
+# recommendations = recommender.recommend(case_input)
 
-# Fill missing values with empty strings
-ipc_data.fillna('', inplace=True)
-fir_data.fillna('', inplace=True)
+# # Print or return recommendations
+# for section, desc, score in recommendations:
+#     print(f"Section {section}")
+#     print(f"Description: {desc.strip()}")
+#     print(f"Similarity Score: {score:.3f}")
+#     print("-" * 50)
 
-# Merge both datasets on common 'Description'
-merged_data = ipc_data.copy()
-if 'Cognizable' in fir_data.columns and 'Bailable' in fir_data.columns and 'Court' in fir_data.columns:
-    merged_data = merged_data.merge(fir_data[['Description', 'Cognizable', 'Bailable', 'Court']], 
-                                    on='Description', how='left')
+# checker = ContractViolationChecker();
 
-merged_data.fillna('', inplace=True)
+# checker.load_model();
 
-# Combine relevant text fields
-merged_data['Combined_Text'] = (
-    merged_data['Description'] + ' ' + 
-    merged_data['Offense'] + ' ' + 
-    merged_data['Punishment'] + ' ' + 
-    merged_data.get('Cognizable', '') + ' ' + 
-    merged_data.get('Bailable', '') + ' ' + 
-    merged_data.get('Court', '')
-)
+# new_input = [20, 100, 1, 5]
+# prediction = checker.predict(new_input)
 
-# Vectorization
-count_vectorizer = CountVectorizer(stop_words='english')
-count_matrix = count_vectorizer.fit_transform(merged_data['Combined_Text'])
+# print("Prediction:", "Violation" if prediction == 1 else "Compliant")
 
-# Cosine similarity function
-def recommend_ipc_sections_cosine(case_description, top_n=3):
-    case_vector = count_vectorizer.transform([case_description])
-    similarities = cosine_similarity(case_vector, count_matrix)[0]
-    
-    recommendations = []
-    for index, similarity in enumerate(similarities):
-        if similarity > 0.1:
-            row = merged_data.iloc[index]
-            recommendations.append((row['Section'], row['Description'], similarity))
-    
-    recommendations = sorted(recommendations, key=lambda x: x[2], reverse=True)[:top_n]
-    return recommendations
+user_input = {
+    "Age": 30,
+    "Gender": "Male",
+    "Education Level": "High School",
+    "Marital Status": "Married",
+    "Annual Income": 45000,
+    "Employment Status": "Unemployed",
+    "Number of Dependents": 2,
+    "Legal Issue": "Criminal",
+    "Urgency Level": "High",
+    "Prior Legal History": "No",
+    "Disability Status": "No",
+    "Citizenship Status": "Citizen",
+    "Criminal Record": "No"
+}
 
-# Streamlit form
-case_input = st.text_area("Enter Case Description", "Type the details of your case here...")
+# Initialize model, load it and make a prediction
+legal = LegalAidModel()
+legal.load_model()
 
-if st.button("Get IPC Recommendations"):
-    top_matches = recommend_ipc_sections_cosine(case_input)
-    if top_matches:
-        st.subheader("Top Recommended IPC Sections:")
-        for section, description, similarity in top_matches:
-            st.markdown(f"### Section {section}")
-            st.write(f"**Description:** {description.strip()}")
-            st.write(f"**Similarity Score:** {similarity:.3f}")
-            st.markdown("---")
-    else:
-        st.warning("No relevant IPC sections found. Please enter more detailed case information.")
+# Predict eligibility
+result = legal.predict(user_input)
+print(f"Predicted Outcome: {result}")

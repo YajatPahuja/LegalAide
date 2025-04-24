@@ -10,7 +10,7 @@ load_dotenv()
 
 
 # Load your trained model
-with open("compliance_model.pkl", "rb") as f:
+with open("model/compliance_model.pkl", "rb") as f:
     model = pickle.load(f)
 
 def check_compliance(features):

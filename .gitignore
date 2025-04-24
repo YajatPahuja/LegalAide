@@ -3,4 +3,6 @@ data/
 *.csv
 *.pkl
 .env
-ganache_data/
+ganache-db/
+models/
+__pycache__/
