@@ -1,50 +1,54 @@
-from ipc_recommendation import IPCRecommender
-from compliancy_check import ContractViolationChecker
-from legal_aid_prediction import LegalAidModel
+import streamlit as st
 
-# recommender = IPCRecommender()
-# recommender.load_model('models/ipc_model.joblib')
+# Import your model classes
+from ipc_recommendation import IPCRecommenderKNN
+# from compliancy_check import ContractViolationChecker
+# from legal_aid_prediction import LegalAidModel
 
-# # Now use it directly
-# case_input = "The accused forcibly entered a house and committed theft at night."
-# recommendations = recommender.recommend(case_input)
+st.set_page_config(page_title="Legal AI Hub", layout="centered")
 
-# # Print or return recommendations
-# for section, desc, score in recommendations:
-#     print(f"Section {section}")
-#     print(f"Description: {desc.strip()}")
-#     print(f"Similarity Score: {score:.3f}")
-#     print("-" * 50)
+st.title("🔍 Legal AI Assistant")
+page = st.sidebar.selectbox("Choose a service", ["IPC Section Recommender", "Contract Compliance", "Legal Aid Prediction"])
 
-# checker = ContractViolationChecker();
+# IPC RECOMMENDER
+if page == "IPC Section Recommender":
+    st.header("📖 IPC Section Recommender")
 
-# checker.load_model();
+    description = st.text_area("Enter FIR/Case Description:")
+    if st.button("Get Recommendations"):
+        with st.spinner("Loading model and predicting..."):
+            recommender = IPCRecommenderKNN()
+            recommender.load_model('models/ipc_knn_model.joblib')
+            recommendations = recommender.recommend(description)
+            st.success("Top Matches:")
+            for section, desc, score in recommendations:
+                st.markdown(f"**Section {section}**\n\n_{desc}_\n\n**Score**: {score:.2f}")
+                st.markdown("---")
 
-# new_input = [20, 100, 1, 5]
-# prediction = checker.predict(new_input)
+# CONTRACT COMPLIANCE
+elif page == "Contract Compliance":
+    st.header("📄 Contract Violation Checker")
 
-# print("Prediction:", "Violation" if prediction == 1 else "Compliant")
+    st.markdown("**(Placeholder UI)** – add contract input fields here.")
+    # Example usage:
+    # new_input = [20, 100, 1, 5]
+    # checker = ContractViolationChecker()
+    # checker.load_model()
+    # prediction = checker.predict(new_input)
+    # st.write("Prediction:", "Violation" if prediction == 1 else "Compliant")
 
-user_input = {
-    "Age": 30,
-    "Gender": "Male",
-    "Education Level": "High School",
-    "Marital Status": "Married",
-    "Annual Income": 45000,
-    "Employment Status": "Unemployed",
-    "Number of Dependents": 2,
-    "Legal Issue": "Criminal",
-    "Urgency Level": "High",
-    "Prior Legal History": "No",
-    "Disability Status": "No",
-    "Citizenship Status": "Citizen",
-    "Criminal Record": "No"
-}
+# LEGAL AID PREDICTION
+elif page == "Legal Aid Prediction":
+    st.header("⚖️ Legal Aid Eligibility Predictor")
 
-# Initialize model, load it and make a prediction
-legal = LegalAidModel()
-legal.load_model()
-
-# Predict eligibility
-result = legal.predict(user_input)
-print(f"Predicted Outcome: {result}")
+    st.markdown("**(Placeholder UI)** – add form fields for user input.")
+    # Example input:
+    # user_input = {
+    #     "Age": 30,
+    #     "Gender": "Male",
+    #     ...
+    # }
+    # legal = LegalAidModel()
+    # legal.load_model()
+    # result = legal.predict(user_input)
+    # st.write(f"Predicted Outcome: {result}")

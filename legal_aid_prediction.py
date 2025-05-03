@@ -2,8 +2,13 @@ import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score , f1_score
 import joblib
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+import matplotlib.pyplot as plt
 
 class LegalAidModel:
     def __init__(self, model_path='models/legal_aid_model.joblib', encoder_path='models/encoders.joblib'):
@@ -58,11 +63,12 @@ class LegalAidModel:
         joblib.dump(encoders, self.encoder_path)
         print("Model and encoders saved successfully!")
 
-    def load_model(self):
-        # Load the saved model and encoders
-        self.model = joblib.load(self.model_path)
-        self.encoders = joblib.load(self.encoder_path)
-        print("Model and encoders loaded successfully!")
+    def load_model(self, model_path='model/ipc_knn_model.joblib'):
+        model = joblib.load(model_path)
+        self.vectorizer = model['vectorizer']
+        self.model = model['model']
+        self.merged_data = model['merged_data']
+        self.features = self.vectorizer.transform(self.merged_data['Combined_Text'])
 
     def predict(self, user_input):
         if self.model is None or not self.encoders:
@@ -91,6 +97,73 @@ class LegalAidModel:
         user_df = pd.DataFrame([user_data], columns=self.columns)  # Use the columns from training
         prediction = self.model.predict(user_df)
         return 'Eligible' if prediction[0] == 1 else 'Not Eligible'
+        
+    def compare_models(self, csv_path):
+       # Load and preprocess dataset
+        df = pd.read_csv(csv_path)
+
+        categorical_features = [
+               "Gender", "Education Level", "Marital Status", "Employment Status", 
+                "Legal Issue", "Urgency Level", "Prior Legal History", 
+               "Disability Status", "Citizenship Status", "Criminal Record"
+        ]
+        numerical_features = ["Age", "Annual Income", "Number of Dependents"]
+
+        for col in numerical_features:
+           if df[col].isnull().any():
+              df[col].fillna(df[col].median(), inplace=True)
+    
+        for col in categorical_features:
+           if df[col].isnull().any():
+              df[col].fillna(df[col].mode()[0], inplace=True)
+
+        # Encode categorical features
+        encoders = {}
+        for col in categorical_features:
+            le = LabelEncoder()
+            df[col] = le.fit_transform(df[col])
+            encoders[col] = le
+
+        X = df.drop(columns=["Eligibility Status"])
+        y = df["Eligibility Status"]
+        self.columns = X.columns.tolist()
+
+        X_train, X_test, y_train, y_test = train_test_split(
+           X, y, test_size=0.3, random_state=42, stratify=y
+        )
+
+    # Models to compare
+        models = {
+            'Decision Tree': DecisionTreeClassifier(max_depth=50, random_state=42),
+            'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42),
+            'Logistic Regression': LogisticRegression(max_iter=1000),
+            'Naive Bayes': GaussianNB(),
+            'SVM': SVC()
+        }
+
+        results = []
+
+        for name, model in models.items():
+           model.fit(X_train, y_train)
+           y_pred = model.predict(X_test)
+           acc = accuracy_score(y_test, y_pred)
+           f1 = f1_score(y_test, y_pred, average='binary')  # Use 'binary' for 0/1 labels
+           results.append({'Model': name, 'Accuracy': acc, 'F1 Score': f1})
+
+        results_df = pd.DataFrame(results)
+        print(results_df)
+
+        # Plotting accuracy
+        ax = results_df.set_index('Model')[['Accuracy', 'F1 Score']].plot(
+        kind='bar', figsize=(10, 6), color=['skyblue', 'lightgreen']
+    )
+        plt.title("Model Comparison: Accuracy vs F1 Score")
+        plt.ylabel("Accuracy")
+        plt.ylim(0, 1)
+        plt.grid(True, axis='y')
+        plt.tight_layout()
+        plt.show()
+
 
 
 # Fixed user input for testing
@@ -110,10 +183,47 @@ user_input = {
     "Criminal Record": "No"
 }
 
-# Initialize model, load it and make a prediction
-legal = LegalAidModel()
-legal.load_model()
 
-# Predict eligibility
-result = legal.predict(user_input)
-print(f"Predicted Outcome: {result}")
+# # Initialize model, load it and make a prediction
+# legal = LegalAidModel()
+# legal.load_model()
+
+# # Predict eligibility
+# result = legal.predict(user_input)
+# print(f"Predicted Outcome: {result}")
+
+legal = LegalAidModel()
+# legal.compare_models("data/legal_aid_dataset.csv")
+
+
+# import pandas as pd
+# import joblib
+# from sklearn.tree import plot_tree
+# import matplotlib.pyplot as plt
+# from sklearn.tree import DecisionTreeClassifier
+
+# # Load the trained model
+# model = joblib.load('models/legal_aid_model.joblib')
+
+# # Ensure model is a decision tree
+# if not isinstance(model, DecisionTreeClassifier):
+#     raise TypeError("Loaded model is not a DecisionTreeClassifier. Only decision trees can be visualized using plot_tree.")
+
+# # Load the dataset to get feature names
+# df = pd.read_csv('data/legal_aid_dataset.csv')
+# X = df.drop(columns=["Eligibility Status"])
+
+# # Plot the tree with improvements
+# plt.figure(figsize=(24, 12))  # Wider figure
+# plot_tree(model, 
+#           feature_names=X.columns, 
+#           class_names=["Not Eligible", "Eligible"], 
+#           filled=True, 
+#           rounded=True, 
+#           max_depth=4,        # Limit depth to avoid clutter
+#           fontsize=10,        # Smaller font for readability
+#           impurity=False)     # Optional: hide impurity values for cleaner plot
+
+# plt.title("Legal Aid Eligibility - Decision Tree (Depth Limited)", fontsize=16)
+# plt.tight_layout()
+# plt.show()

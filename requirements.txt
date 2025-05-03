@@ -7,3 +7,4 @@ py-solc-x
 eth-account
 joblib
 python-dotenv
+matplotlib
